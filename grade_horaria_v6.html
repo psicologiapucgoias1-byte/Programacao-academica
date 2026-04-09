@@ -1,0 +1,1672 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grade Horária — Psicologia PUC Goiás</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+:root {
+  --bg:#f7f6f2;--surface:#fff;--border:#e2e0d8;--border-strong:#c8c5bb;
+  --text:#1a1916;--text-2:#5c5a54;--text-3:#9a9890;
+  --accent:#2d5a8e;--accent-light:#e8f0f9;
+  --ok:#2d7a4f;--ok-light:#e8f5ee;--ok-border:#7ec8a0;
+  --warn:#8a5c00;--warn-light:#fdf3dc;--warn-border:#d4a830;
+  --danger:#8a2020;--danger-light:#fde8e8;--danger-border:#e57373;
+  --conflict:#c0392b;--conflict-light:#fce8e6;--conflict-border:#e57373;
+  --blocked:#f3e5dc;--blocked-border:#d4956a;--blocked-text:#7a3a10;
+  --manha:#1a4a7a;--manha-light:#ddeaf8;
+  --tarde:#5a3a8a;--tarde-light:#ede8f8;
+  --noite:#1a5a4a;--noite-light:#ddf0eb;
+  --r:8px;--rl:12px;
+  --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --shm:0 4px 12px rgba(0,0,0,.10),0 2px 4px rgba(0,0,0,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;min-height:100vh;}
+
+/* HEADER */
+.hdr{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;gap:14px;height:52px;position:sticky;top:0;z-index:100;box-shadow:var(--sh);}
+.hdr-logo{font-weight:600;font-size:15px;letter-spacing:-.3px;}
+.hdr-logo span{color:var(--accent);}
+.hdr-sep{width:1px;height:18px;background:var(--border);}
+.hdr-sub{font-size:11px;color:var(--text-3);}
+.hdr-acts{margin-left:auto;display:flex;gap:6px;}
+
+/* LAYOUT */
+.layout{display:flex;height:calc(100vh - 52px);}
+
+/* SIDEBAR */
+.sb{width:270px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;display:flex;flex-direction:column;}
+.sb-sec{padding:11px 15px;border-bottom:1px solid var(--border);}
+.sb-lbl{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3);margin-bottom:8px;}
+
+/* PERÍODO */
+.per-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:3px;}
+.per-btn{border:1px solid var(--border);background:var(--bg);border-radius:5px;padding:5px 3px;font-size:11px;font-weight:500;cursor:pointer;text-align:center;transition:all .15s;color:var(--text-2);font-family:'DM Mono',monospace;}
+.per-btn:hover{border-color:var(--accent);color:var(--accent);}
+.per-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+/* TURMA */
+.turma-list{display:flex;flex-direction:column;gap:3px;}
+.turma-btn{display:flex;align-items:center;gap:7px;padding:7px 9px;border-radius:var(--r);cursor:pointer;border:1px solid transparent;transition:all .15s;font-size:13px;font-weight:500;color:var(--text-2);background:transparent;width:100%;text-align:left;}
+.turma-btn:hover{background:var(--bg);}
+.turma-btn.active{background:var(--accent-light);border-color:#b8d0ed;color:var(--accent);}
+.t-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.dot-manha{background:var(--manha);}
+.dot-tarde{background:var(--tarde);}
+.dot-noite{background:var(--noite);}
+.t-info{font-size:10px;color:var(--text-3);font-weight:400;margin-left:auto;}
+
+/* PAINEL ALUNOS */
+.alunos-grid{display:flex;flex-direction:column;gap:6px;}
+.aluno-row{display:flex;align-items:center;gap:8px;}
+.aluno-label{font-size:11px;color:var(--text-2);width:80px;flex-shrink:0;}
+.aluno-input{border:1px solid var(--border);border-radius:5px;padding:5px 8px;font-size:13px;font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);width:70px;outline:none;text-align:center;transition:border-color .15s;}
+.aluno-input:focus{border-color:var(--accent);background:var(--surface);}
+
+/* DIMENSIONAMENTO */
+.dim-table{width:100%;font-size:11px;border-collapse:collapse;}
+.dim-table td,.dim-table th{padding:4px 6px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.dim-table th{font-size:10px;font-weight:600;color:var(--text-3);text-align:left;}
+.dim-table td:last-child,.dim-table th:last-child{text-align:right;}
+.dim-badge{display:inline-flex;align-items:center;gap:3px;border-radius:4px;padding:1px 7px;font-size:10px;font-weight:600;font-family:'DM Mono',monospace;}
+.dim-ok{background:var(--ok-light);color:var(--ok);}
+.dim-over{background:var(--danger-light);color:var(--conflict);}
+.dim-under{background:var(--warn-light);color:var(--warn);}
+.dim-zero{background:var(--bg);color:var(--text-3);}
+
+/* CAPACIDADE */
+.cap-list{display:flex;flex-direction:column;gap:4px;font-size:11px;}
+.cap-row{display:flex;align-items:center;gap:6px;}
+.cap-dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;}
+.cap-val{margin-left:auto;font-family:'DM Mono',monospace;font-weight:500;color:var(--text-2);}
+.cap-input{border:1px solid var(--border);border-radius:4px;padding:2px 6px;font-size:11px;font-family:'DM Mono',monospace;background:var(--bg);color:var(--text);width:48px;outline:none;text-align:center;}
+.cap-input:focus{border-color:var(--accent);}
+
+/* ESPAÇO ÚNICO */
+.eu-list{display:flex;flex-direction:column;gap:3px;margin-bottom:7px;}
+.eu-item{display:flex;align-items:center;gap:5px;font-size:11px;}
+.eu-code{font-family:'DM Mono',monospace;font-weight:500;color:var(--danger);font-size:10px;flex:1;}
+
+/* FORM */
+.disc-form{display:flex;flex-direction:column;gap:7px;}
+.fg{display:flex;flex-direction:column;gap:3px;}
+.fl{font-size:10px;color:var(--text-3);font-weight:500;}
+.fi,.fs{border:1px solid var(--border);border-radius:5px;padding:6px 9px;font-size:13px;font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);width:100%;outline:none;transition:border-color .15s;}
+.fi:focus,.fs:focus{border-color:var(--accent);background:var(--surface);}
+
+/* CORES */
+.cg{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;}
+.co{width:100%;aspect-ratio:1;border-radius:3px;cursor:pointer;border:2px solid transparent;transition:transform .1s;}
+.co:hover{transform:scale(1.12);}
+.co.sel{border-color:var(--text);}
+
+/* BOTÕES */
+.btn{padding:7px 13px;border-radius:5px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all .15s;font-family:'DM Sans',sans-serif;}
+.btn-p{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-p:hover{background:#1e4070;}
+.btn-g{background:transparent;color:var(--text-2);border-color:var(--border);}
+.btn-g:hover{background:var(--bg);}
+.btn-sm{padding:4px 9px;font-size:11px;}
+.btn-full{width:100%;}
+.btn-danger{background:var(--conflict);color:#fff;border-color:var(--conflict);}
+
+/* MAIN */
+.main{flex:1;overflow:auto;padding:18px 22px;}
+.gh{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.gt{font-size:17px;font-weight:600;letter-spacing:-.3px;}
+.gb{font-size:10px;font-weight:600;padding:3px 9px;border-radius:20px;letter-spacing:.04em;}
+.b-manha{background:var(--manha-light);color:var(--manha);}
+.b-tarde{background:var(--tarde-light);color:var(--tarde);}
+.b-noite{background:var(--noite-light);color:var(--noite);}
+
+/* PAINEL DIMENSIONAMENTO TOPO */
+.dim-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 16px;margin-bottom:12px;box-shadow:var(--sh);}
+.dim-panel-title{font-size:11px;font-weight:600;color:var(--text-2);margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+.dim-cards{display:flex;gap:8px;flex-wrap:wrap;}
+.dim-card{border-radius:6px;padding:8px 12px;min-width:120px;border:1px solid transparent;}
+.dim-card-label{font-size:9px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;margin-bottom:3px;}
+.dim-card-val{font-size:18px;font-weight:600;font-family:'DM Mono',monospace;}
+.dim-card-sub{font-size:9px;margin-top:1px;}
+.dc-ok{background:var(--ok-light);border-color:var(--ok-border);color:var(--ok);}
+.dc-over{background:var(--danger-light);border-color:var(--danger-border);color:var(--conflict);}
+.dc-under{background:var(--warn-light);border-color:var(--warn-border);color:var(--warn);}
+.dc-neu{background:var(--bg);border-color:var(--border);color:var(--text-2);}
+
+/* ALERTA GERAL */
+.alert-bar{border-radius:var(--r);padding:8px 12px;font-size:11px;margin-bottom:10px;display:none;line-height:1.5;}
+.alert-bar.show{display:block;}
+.ab-danger{background:var(--conflict-light);border:1px solid var(--conflict-border);color:var(--conflict);}
+.ab-warn{background:var(--warn-light);border:1px solid var(--warn-border);color:var(--warn);}
+.ab-ok{background:var(--ok-light);border:1px solid var(--ok-border);color:var(--ok);}
+
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;gap:7px;margin-bottom:12px;flex-wrap:wrap;}
+.tb-sep{width:1px;height:18px;background:var(--border);}
+
+/* STATS */
+.stats-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:7px 11px;min-width:84px;}
+.sc-l{font-size:9px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.06em;}
+.sc-v{font-size:19px;font-weight:600;font-family:'DM Mono',monospace;color:var(--text);margin-top:1px;}
+.sc.sc-err{border-color:var(--danger-border);}
+.sc.sc-err .sc-v{color:var(--conflict);}
+
+/* GRADE */
+.gw{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;box-shadow:var(--sh);}
+.gt2{width:100%;border-collapse:collapse;}
+.gt2 th{background:var(--bg);padding:9px 10px;font-size:11px;font-weight:600;color:var(--text-2);text-align:center;border-bottom:1px solid var(--border);border-right:1px solid var(--border);letter-spacing:.02em;}
+.gt2 th:last-child{border-right:none;}
+.gt2 th.hth{width:88px;text-align:left;padding-left:12px;}
+.gt2 td{border-bottom:1px solid var(--border);border-right:1px solid var(--border);vertical-align:top;padding:3px;min-height:84px;position:relative;}
+.gt2 td:last-child{border-right:none;}
+.gt2 tr:last-child td{border-bottom:none;}
+.hc{background:var(--bg);padding:7px 12px !important;vertical-align:middle !important;}
+.hn{font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:var(--text-2);display:block;}
+.hr{font-size:9px;color:var(--text-3);display:block;margin-top:2px;}
+
+/* CÉLULA */
+.cc{display:flex;flex-direction:column;gap:2px;min-height:78px;}
+.slot{border-radius:5px;cursor:pointer;display:flex;flex-direction:column;justify-content:center;padding:4px 6px;transition:opacity .15s;position:relative;border:1.5px solid transparent;min-height:32px;}
+.slot:hover{opacity:.86;}
+.slot.empty{border:1.5px dashed var(--border);background:transparent;align-items:center;justify-content:center;color:var(--text-3);font-size:15px;}
+.slot.empty:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light);}
+.slot.cf-hard{background:var(--conflict-light)!important;border-color:var(--conflict-border)!important;animation:pr 1.5s ease-in-out infinite;}
+.slot.cf-cap{background:var(--warn-light)!important;border-color:var(--warn-border)!important;}
+@keyframes pr{0%,100%{box-shadow:0 0 0 0 rgba(192,57,43,0)}50%{box-shadow:0 0 0 3px rgba(192,57,43,.22)}}
+.s-code{font-family:'DM Mono',monospace;font-size:9px;font-weight:500;opacity:.72;margin-bottom:1px;}
+.s-name{font-size:10px;font-weight:600;line-height:1.2;}
+.s-sub{font-size:9px;opacity:.68;margin-top:1px;}
+.s-cap{font-size:9px;margin-top:2px;display:flex;align-items:center;gap:3px;font-weight:500;}
+.s-cf{font-size:8px;font-weight:600;color:var(--conflict);margin-top:2px;}
+.s-del{position:absolute;top:2px;right:2px;width:14px;height:14px;border-radius:50%;background:rgba(0,0,0,.18);display:none;align-items:center;justify-content:center;font-size:9px;cursor:pointer;color:#fff;z-index:2;}
+.slot:not(.empty):hover .s-del{display:flex;}
+.slot-blocked{border-radius:5px;background:var(--blocked);border:1.5px dashed var(--blocked-border);padding:3px 6px;font-size:9px;color:var(--blocked-text);display:flex;align-items:center;gap:3px;min-height:24px;}
+
+/* LEGENDA */
+.legenda{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px;}
+.li2{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-2);background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:3px 8px;}
+.ld{width:9px;height:9px;border-radius:2px;flex-shrink:0;}
+
+/* MODAL */
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;}
+.mo.open{display:flex;}
+.md{background:var(--surface);border-radius:var(--rl);padding:22px;width:440px;max-width:95vw;box-shadow:var(--shm);animation:mi .15s ease;}
+@keyframes mi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.md-title{font-size:15px;font-weight:600;margin-bottom:3px;}
+.md-info{font-size:11px;color:var(--text-3);margin-bottom:12px;font-family:'DM Mono',monospace;}
+.md-acts{display:flex;gap:7px;margin-top:14px;justify-content:flex-end;}
+
+/* ALERTA MODAL */
+.ma{border-radius:var(--r);padding:8px 11px;font-size:11px;line-height:1.5;margin-bottom:8px;display:none;}
+.ma.show{display:block;}
+.ma-hard{background:var(--conflict-light);border:1px solid var(--conflict-border);color:var(--conflict);}
+.ma-warn{background:var(--warn-light);border:1px solid var(--warn-border);color:var(--warn);}
+.ma-info{background:var(--accent-light);border:1px solid #b8d0ed;color:var(--accent);}
+.ma-cap{background:var(--ok-light);border:1px solid var(--ok-border);color:var(--ok);}
+
+/* CONFLICT LEGEND BAR */
+.cl-bar{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;}
+.cl-i{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--text-2);}
+.cl-b{width:13px;height:13px;border-radius:2px;flex-shrink:0;}
+
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:3px;}
+@media print{.sb,.hdr-acts,.toolbar,.slot.empty,.s-del,.cl-bar,.dim-panel{display:none!important;}.main{padding:0;}.layout{height:auto;}}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-logo">Psicologia <span>PUC Goiás</span></div>
+  <div class="hdr-sep"></div>
+  <div class="hdr-sub">Programação Acadêmica 2026/2</div>
+  <div class="hdr-acts">
+    <span id="conStatus" style="font-size:11px;padding:3px 10px;border-radius:12px;font-weight:500;background:#e8f5ee;color:#2d7a4f;">conectando...</span>
+    <span id="userLabel" style="font-size:11px;color:var(--text-3);max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+    <button class="btn btn-g btn-sm" onclick="exportar()">Exportar JSON</button>
+    <button class="btn btn-g btn-sm" onclick="importar()">Importar JSON</button>
+    <button class="btn btn-p btn-sm" onclick="window.print()">Imprimir</button>
+    <button class="btn btn-g btn-sm" id="btnLogout" onclick="logout()" style="display:none;">Sair</button>
+  </div>
+</div>
+
+<div class="layout">
+<!-- SIDEBAR -->
+<div class="sb">
+
+  <div class="sb-sec">
+    <div class="sb-lbl">Período</div>
+    <div class="per-grid" id="perGrid"></div>
+  </div>
+
+  <div class="sb-sec">
+    <div class="sb-lbl">Matriz Curricular</div>
+    <div style="display:flex;gap:5px;margin-bottom:8px;">
+      <button id="btnBach" class="btn btn-p btn-sm" style="flex:1;font-size:11px;" onclick="setMatriz('bach')">Bacharelado</button>
+      <button id="btnLic"  class="btn btn-g btn-sm" style="flex:1;font-size:11px;" onclick="setMatriz('bach_lic')">Bach. + Lic.</button>
+    </div>
+    <div style="font-size:10px;color:var(--text-3);" id="matrizInfo">Bacharelado — 268 créditos</div>
+  </div>
+
+  <div class="sb-sec" id="sbSugestoes" style="max-height:220px;overflow-y:auto;">
+    <div class="sb-lbl">Disciplinas do Período <span id="lbSugTipo" style="color:var(--ok);font-weight:400">(clique para adicionar)</span></div>
+    <div id="listaSugestoes" style="display:flex;flex-direction:column;gap:3px;"></div>
+  </div>
+
+  <div class="sb-sec" id="sbOptativas" style="max-height:180px;overflow-y:auto;display:none;">
+    <div class="sb-lbl">Optativas <span style="color:var(--text-3);font-weight:400">(arraste para a grade)</span></div>
+    <div id="listaOptativas" style="display:flex;flex-direction:column;gap:3px;"></div>
+  </div>
+
+  <div class="sb-sec">
+    <div class="sb-lbl">Turma</div>
+    <div class="turma-list" id="turmaList"></div>
+  </div>
+
+  <!-- ALUNOS PREVISTOS -->
+  <div class="sb-sec">
+    <div class="sb-lbl">Alunos Previstos (por turno)</div>
+    <div class="alunos-grid">
+      <div class="aluno-row">
+        <span class="aluno-label" style="color:var(--manha)">Matutino</span>
+        <input type="number" class="aluno-input" id="alManha" min="0" max="500" placeholder="0" oninput="salvarAlunos();recalcularDim()">
+        <span style="font-size:10px;color:var(--text-3)">alunos</span>
+      </div>
+      <div class="aluno-row">
+        <span class="aluno-label" style="color:var(--tarde)">Vespertino</span>
+        <input type="number" class="aluno-input" id="alTarde" min="0" max="500" placeholder="0" oninput="salvarAlunos();recalcularDim()">
+        <span style="font-size:10px;color:var(--text-3)">alunos</span>
+      </div>
+      <div class="aluno-row">
+        <span class="aluno-label" style="color:var(--noite)">Noturno</span>
+        <input type="number" class="aluno-input" id="alNoite" min="0" max="500" placeholder="0" oninput="salvarAlunos();recalcularDim()">
+        <span style="font-size:10px;color:var(--text-3)">alunos</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- CAPACIDADES -->
+  <div class="sb-sec">
+    <div class="sb-lbl">Capacidade por Tipo</div>
+    <div class="cap-list">
+      <div class="cap-row">
+        <div class="cap-dot" style="background:#1a4a7a"></div>
+        <span style="flex:1;font-size:11px">Preleção</span>
+        <input type="number" class="cap-input" id="capAula" value="60" min="1" oninput="salvarCaps();recalcularDim()">
+        <span style="font-size:10px;color:var(--text-3)">max</span>
+      </div>
+      <div class="cap-row">
+        <div class="cap-dot" style="background:#2d7a4f"></div>
+        <span style="flex:1;font-size:11px">Laboratório</span>
+        <input type="number" class="cap-input" id="capLab" value="20" min="1" oninput="salvarCaps();recalcularDim()">
+        <span style="font-size:10px;color:var(--text-3)">max</span>
+      </div>
+      <div class="cap-row">
+        <div class="cap-dot" style="background:#8a5c00"></div>
+        <span style="flex:1;font-size:11px">Estágio/Prática</span>
+        <input type="number" class="cap-input" id="capEstagio" value="10" min="1" oninput="salvarCaps();recalcularDim()">
+        <span style="font-size:10px;color:var(--text-3)">max</span>
+      </div>
+      <div class="cap-row">
+        <div class="cap-dot" style="background:#8a2020"></div>
+        <span style="flex:1;font-size:11px">TCC</span>
+        <input type="number" class="cap-input" id="capTcc" value="10" min="1" oninput="salvarCaps();recalcularDim()">
+        <span style="font-size:10px;color:var(--text-3)">max</span>
+      </div>
+      <div class="cap-row">
+        <div class="cap-dot" style="background:#5a3a8a"></div>
+        <span style="flex:1;font-size:11px">Licenciatura</span>
+        <input type="number" class="cap-input" id="capLic" value="60" min="1" oninput="salvarCaps();recalcularDim()">
+        <span style="font-size:10px;color:var(--text-3)">max</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ESPAÇO ÚNICO -->
+  <div class="sb-sec">
+    <div class="sb-lbl">Espaço Físico Único</div>
+    <div class="eu-list" id="euList"></div>
+    <div style="display:flex;gap:5px;">
+      <input type="text" class="fi" id="novaEU" placeholder="PSI2246" style="font-family:'DM Mono',monospace;font-size:11px;flex:1;padding:5px 8px;">
+      <button class="btn btn-g btn-sm" onclick="addEU()">+</button>
+    </div>
+  </div>
+
+  <!-- FORM NOVA DISCIPLINA -->
+  <div class="sb-sec" style="flex:1">
+    <div class="sb-lbl">Nova Disciplina (pré-preenche)</div>
+    <div class="disc-form">
+      <div class="fg"><label class="fl">Código</label>
+        <input type="text" class="fi" id="fCod" placeholder="PSI1143" style="font-family:'DM Mono',monospace;" oninput="this.value=this.value.toUpperCase()">
+      </div>
+      <div class="fg"><label class="fl">Nome</label>
+        <input type="text" class="fi" id="fNome" placeholder="Análise do Comportamento I">
+      </div>
+      <div class="fg"><label class="fl">Subtítulo</label>
+        <input type="text" class="fi" id="fSub" placeholder="A01/1 · LAB">
+      </div>
+      <div class="fg"><label class="fl">Tipo</label>
+        <select class="fs" id="fTipo" onchange="syncCor(this.value,'cg1')">
+          <option value="aula">Preleção (aula regular)</option>
+          <option value="lab">Laboratório / subturma</option>
+          <option value="estagio">Estágio / prática</option>
+          <option value="lic">Licenciatura</option>
+          <option value="tcc">TCC / Pesquisa</option>
+        </select>
+      </div>
+      <div class="fg"><label class="fl">Cor</label><div class="cg" id="cg1"></div></div>
+    </div>
+  </div>
+
+  <div class="sb-sec">
+    <div class="sb-lbl">Legenda Tipos</div>
+    <div style="display:flex;flex-direction:column;gap:4px;font-size:10px;color:var(--text-2)">
+      <div style="display:flex;align-items:center;gap:5px;"><div style="width:9px;height:9px;border-radius:2px;background:#1a4a7a;flex-shrink:0"></div>Preleção (max <span id="lgAula">60</span>)</div>
+      <div style="display:flex;align-items:center;gap:5px;"><div style="width:9px;height:9px;border-radius:2px;background:#2d7a4f;flex-shrink:0"></div>Lab / subturma (max <span id="lgLab">20</span>)</div>
+      <div style="display:flex;align-items:center;gap:5px;"><div style="width:9px;height:9px;border-radius:2px;background:#8a5c00;flex-shrink:0"></div>Estágio / prática (max <span id="lgEst">10</span>)</div>
+      <div style="display:flex;align-items:center;gap:5px;"><div style="width:9px;height:9px;border-radius:2px;background:#8a2020;flex-shrink:0"></div>TCC (max <span id="lgTcc">10</span>)</div>
+      <div style="display:flex;align-items:center;gap:5px;"><div style="width:9px;height:9px;border-radius:2px;background:#5a3a8a;flex-shrink:0"></div>Licenciatura (max <span id="lgLic">60</span>)</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="gh">
+    <div class="gt" id="gTitle">1º Período</div>
+    <div class="gb" id="gBadge">Matutino</div>
+    <div style="margin-left:auto;font-size:11px;color:var(--text-3)" id="gInfo">Turma A01</div>
+  </div>
+
+  <!-- PAINEL DIMENSIONAMENTO -->
+  <div class="dim-panel" id="dimPanel">
+    <div class="dim-panel-title" style="justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <span>Dimensionamento automático — <span id="dimTurnoLabel">Matutino</span>
+      <span style="font-size:9px;color:var(--text-3);margin-left:4px;">baseado nos alunos previstos</span></span>
+      <span id="matrizPeriodoInfo" style="font-size:10px;color:var(--text-3);font-family:'DM Mono',monospace;"></span>
+    </div>
+    <div class="dim-cards" id="dimCards"></div>
+  </div>
+
+  <!-- ALERTA GERAL -->
+  <div class="alert-bar ab-danger" id="abDanger"></div>
+  <div class="alert-bar ab-warn" id="abWarn"></div>
+  <div class="alert-bar ab-ok" id="abOk"></div>
+
+  <!-- CONFLICT LEGEND -->
+  <div class="cl-bar">
+    <div class="cl-i"><div class="cl-b" style="background:#fce8e6;border:1.5px solid #e57373;border-radius:2px;animation:pr 1.5s ease-in-out infinite;"></div>Conflito (preleção dupla / espaço único)</div>
+    <div class="cl-i"><div class="cl-b" style="background:#fdf3dc;border:1.5px solid #d4a830;border-radius:2px;"></div>Capacidade excedida</div>
+    <div class="cl-i"><div class="cl-b" style="background:#f3e5dc;border:1.5px dashed #d4956a;border-radius:2px;"></div>Espaço único ocupado em outra turma</div>
+  </div>
+
+  <div class="stats-bar" id="statsBar"></div>
+
+  <div class="toolbar">
+    <button class="btn btn-g btn-sm" onclick="limpar()">Limpar grade atual</button>
+    <div class="tb-sep"></div>
+    <button class="btn btn-g btn-sm" onclick="abrirCopiar()">Copiar de outra turma</button>
+    <div class="tb-sep"></div>
+    <span style="font-size:11px;color:var(--text-3)" id="statusMsg">Clique em um slot para editar</span>
+  </div>
+
+  <div class="gw"><table class="gt2" id="gradeTable"></table></div>
+  <div class="legenda" id="legenda"></div>
+</div>
+</div>
+
+<!-- MODAL EDITAR/ADICIONAR -->
+<div class="mo" id="moEdit" onclick="fechaMo(event,'moEdit')">
+<div class="md" onclick="event.stopPropagation()">
+  <div class="md-title" id="moTitle">Adicionar disciplina</div>
+  <div class="md-info" id="moInfo"></div>
+  <div class="ma ma-hard" id="maHard"></div>
+  <div class="ma" id="maInter" style="background:#f0e8f8;border:1px solid #9b6dcc;color:#6b3fa0;display:none;"></div>
+  <div class="ma ma-warn" id="maWarn"></div>
+  <div class="ma ma-cap" id="maCap"></div>
+  <div class="ma ma-info" id="maInfo"></div>
+  <div class="disc-form">
+    <div style="display:flex;gap:7px;">
+      <div class="fg" style="flex:1"><label class="fl">Código</label>
+        <input type="text" class="fi" id="mCod" placeholder="PSI1143" style="font-family:'DM Mono',monospace;" oninput="this.value=this.value.toUpperCase();validar()">
+      </div>
+      <div class="fg" style="flex:2"><label class="fl">Tipo</label>
+        <select class="fs" id="mTipo" onchange="syncCor(this.value,'cg2');validar()">
+          <option value="aula">Preleção</option>
+          <option value="lab">Laboratório / subturma</option>
+          <option value="estagio">Estágio / prática</option>
+          <option value="lic">Licenciatura</option>
+          <option value="tcc">TCC / Pesquisa</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label class="fl">Nome da Disciplina</label>
+      <input type="text" class="fi" id="mNome" placeholder="Análise do Comportamento I">
+    </div>
+    <div class="fg"><label class="fl">Subtítulo / Subturma / Obs</label>
+      <input type="text" class="fi" id="mSub" placeholder="A01/1 · 20 alunos">
+    </div>
+    <div class="fg"><label class="fl">Nº de alunos nesta subturma/turma</label>
+      <input type="number" class="fi" id="mAlunos" placeholder="ex: 20" min="0" oninput="validar()" style="width:120px;">
+    </div>
+    <div class="fg"><label class="fl">Cor</label><div class="cg" id="cg2"></div></div>
+  </div>
+  <div class="md-acts">
+    <button class="btn btn-g" onclick="fechaMo(null,'moEdit')">Cancelar</button>
+    <button class="btn btn-p" id="btnSalvar" onclick="salvar()">Salvar</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL COPIAR -->
+<div class="mo" id="moCopiar" onclick="fechaMo(event,'moCopiar')">
+<div class="md" onclick="event.stopPropagation()">
+  <div class="md-title">Copiar grade de outra turma</div>
+  <div class="disc-form" style="margin-top:10px;">
+    <div class="fg"><label class="fl">Período de origem</label><select class="fs" id="cpPer"></select></div>
+    <div class="fg"><label class="fl">Turma de origem</label><select class="fs" id="cpTur"></select></div>
+  </div>
+  <div class="md-acts">
+    <button class="btn btn-g" onclick="fechaMo(null,'moCopiar')">Cancelar</button>
+    <button class="btn btn-p" onclick="confirmarCopiar()">Copiar</button>
+  </div>
+</div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG SUPABASE — substitua pelos valores do seu projeto
+// ============================================================
+const SUPABASE_URL = 'https://SEU-PROJETO.supabase.co';
+const SUPABASE_KEY = 'sua-anon-key-aqui';
+
+// MATRIZ CURRICULAR — PUC GOIÁS — PSICOLOGIA 2023/1
+// bach = Bacharelado | lic = Licenciatura (exclusivo) | ambos = comum às duas
+
+const MATRIZ = {
+  // ── TIPO DE CURSO ─────────────────────────────────────────────
+  // bach_lic = Bacharel + Licenciado (322 cr)
+  // bach     = Bacharelado (268 cr)
+
+  // ── CORES POR NATUREZA ─────────────────────────────────────────
+  // aula      → blue   (preleção pura)
+  // lab       → teal   (tem laboratório)
+  // estagio   → amber  (estágio / prática)
+  // lic       → purple (exclusivo licenciatura)
+  // tcc       → red
+  // ext       → olive  (extensão)
+
+  disciplinas: {
+    // ─── PERÍODO 1 ───────────────────────────────────────────────
+    1: {
+      bach: [
+        { codigo:'FPH1030', nome:'Sociologia Aplicada à Psicologia',           cr:4, ch:60,  tipo:'aula', cor:'blue',   temLab:false, exclusivo:'ambos' },
+        { codigo:'FPH1360', nome:'Filosofia e Psicologia',                      cr:4, ch:60,  tipo:'aula', cor:'blue',   temLab:false, exclusivo:'ambos' },
+        { codigo:'PSI1140', nome:'História da Psicologia',                      cr:4, ch:60,  tipo:'aula', cor:'blue',   temLab:false, exclusivo:'ambos' },
+        { codigo:'PSI1143', nome:'Análise do Comportamento I',                  cr:6, ch:90,  tipo:'aula', cor:'teal',   temLab:true,  exclusivo:'ambos' },
+        { codigo:'PSI1542', nome:'Psi. do Desenv. da Gestação à 1ª Infância',  cr:6, ch:90,  tipo:'ext',  cor:'green',  temLab:false, exclusivo:'ambos' },
+      ],
+      lic_extra: [], // disciplinas só da licenciatura neste período
+      ch_sem: 360, cr_sem: 24,
+    },
+    // ─── PERÍODO 2 ───────────────────────────────────────────────
+    2: {
+      bach: [
+        { codigo:'PSI1027', nome:'Psicologia Social Contemporânea',             cr:6, ch:90,  tipo:'aula', cor:'teal',   temLab:true,  exclusivo:'ambos' },
+        { codigo:'PSI1028', nome:'Métodos de Pesquisa Quantitativa',            cr:4, ch:60,  tipo:'aula', cor:'indigo', temLab:true,  exclusivo:'ambos' },
+        { codigo:'PSI1144', nome:'Análise do Comportamento II',                 cr:6, ch:90,  tipo:'aula', cor:'teal',   temLab:true,  exclusivo:'ambos' },
+        { codigo:'PSI1145', nome:'Matrizes do Pensamento I',                    cr:3, ch:45,  tipo:'aula', cor:'blue',   temLab:false, exclusivo:'ambos' },
+        { codigo:'PSI1146', nome:'Psi. do Desenv. da 2ª Infância à Juventude', cr:6, ch:90,  tipo:'ext',  cor:'green',  temLab:false, exclusivo:'ambos' },
+      ],
+      lic_extra: [
+        { codigo:'FPH1005', nome:'Fundamentos da Educação Escolar',             cr:4, ch:60,  tipo:'lic',  cor:'purple', temLab:false, exclusivo:'lic' },
+      ],
+      ch_sem_bach: 375, cr_sem_bach: 25,
+      ch_sem_lic:  435, cr_sem_lic:  29,
+    },
+    // ─── PERÍODO 3 ───────────────────────────────────────────────
+    3: {
+      bach: [
+        { codigo:'PSI1019', nome:'Psicologia Evolucionista',                    cr:4, ch:60,  tipo:'aula', cor:'blue',   temLab:false, exclusivo:'ambos' },
+        { codigo:'PSI1038', nome:'Teorias da Person. Cognitivista e Anal. Comport.', cr:4, ch:60, tipo:'aula', cor:'blue', temLab:false, exclusivo:'ambos' },
+        { codigo:'PSI1040', nome:'Temas em Psicologia Social',                  cr:6, ch:90,  tipo:'aula', cor:'teal',   temLab:true,  exclusivo:'ambos' },
+        { codigo:'PSI1051', nome:'Matrizes do Pensamento Psicológico II',       cr:3, ch:45,  tipo:'aula', cor:'blue',   temLab:false, exclusivo:'ambos' },
+        { codigo:'PSI1052', nome:'Psi. do Desenv. da Vida Adulta à Senescência',cr:6, ch:90,  tipo:'ext',  cor:'green',  temLab:false, exclusivo:'ambos' },
+      ],
+      lic_extra: [
+        { codigo:'FPH1008', nome:'Políticas Educacionais',                      cr:4, ch:60,  tipo:'lic',  cor:'purple', temLab:false, exclusivo:'lic' },
+      ],
+      ch_sem_bach: 345, cr_sem_bach: 23,
+      ch_sem_lic:  405, cr_sem_lic:  27,
+    },
+    // ─── PERÍODO 4 ───────────────────────────────────────────────
+    4: {
+      bach: [
+        { codigo:'CBB1150', nome:'Anatomofisiologia do Sistema Nervoso',        cr:4, ch:60,  tipo:'aula', cor:'coral',  temLab:true,  exclusivo:'ambos' },
+        { codigo:'CSS1222', nome:'Empreendedorismo, Inovação e Gestão de Carreira', cr:4, ch:60, tipo:'aula', cor:'gray', temLab:false, exclusivo:'ambos' },
+        { codigo:'PSI4001', nome:'Teorias da Person. Humanista e Fenomenológica', cr:4, ch:60, tipo:'aula', cor:'blue',  temLab:false, exclusivo:'ambos' },
+        { codigo:'PSI4002', nome:'Processos Grupais',                           cr:6, ch:90,  tipo:'aula', cor:'teal',   temLab:true,  exclusivo:'ambos' },
+        { codigo:'PSI4110', nome:'Psicologia Escolar e Educacional',            cr:4, ch:60,  tipo:'aula', cor:'purple', temLab:false, exclusivo:'ambos' },
+        { codigo:'PSI4112', nome:'Psicometria',                                 cr:6, ch:90,  tipo:'aula', cor:'teal',   temLab:true,  exclusivo:'ambos' },
+        { codigo:'PSI4113', nome:'Matrizes do Pensamento Psicológico III',      cr:3, ch:45,  tipo:'aula', cor:'blue',   temLab:false, exclusivo:'ambos' },
+      ],
+      lic_extra: [],
+      ch_sem: 465, cr_sem: 31,
+    },
+    // ─── PERÍODO 5 ───────────────────────────────────────────────
+    5: {
+      bach: [
+        { codigo:'LET4101', nome:'Língua Portuguesa I',                         cr:4, ch:60,  tipo:'aula', cor:'gray',   temLab:false, exclusivo:'ambos' },
+        { codigo:'PSI2213', nome:'Psicopatologia Geral',                        cr:6, ch:90,  tipo:'aula', cor:'teal',   temLab:true,  exclusivo:'ambos' },
+        { codigo:'PSI5001', nome:'Psicologia em Campos Emergentes',             cr:3, ch:45,  tipo:'aula', cor:'blue',   temLab:false, exclusivo:'ambos' },
+        { codigo:'PSI5010', nome:'Teorias da Person. de Base Psicanalítica',    cr:4, ch:60,  tipo:'aula', cor:'blue',   temLab:false, exclusivo:'ambos' },
+        { codigo:'PSI5012', nome:'Quadros Clín. em Anál. Comport. e Cognitivismo', cr:4, ch:60, tipo:'aula', cor:'blue', temLab:false, exclusivo:'ambos', prereq:'PSI1038' },
+        { codigo:'PSI5014', nome:'Avaliação Psicológica Infantil',              cr:6, ch:90,  tipo:'aula', cor:'teal',   temLab:true,  exclusivo:'ambos', prereq:'PSI1038' },
+      ],
+      lic_extra: [
+        { codigo:'FPH1009', nome:'Didática e Formação de Professores I',        cr:4, ch:60,  tipo:'lic',  cor:'purple', temLab:false, exclusivo:'lic' },
+      ],
+      ch_sem_bach: 405, cr_sem_bach: 27,
+      ch_sem_lic:  465, cr_sem_lic:  31,
+    },
+    // ─── PERÍODO 6 ───────────────────────────────────────────────
+    6: {
+      bach: [
+        { codigo:'PSI2221', nome:'Psicopatologia Clínica',                      cr:6, ch:90,  tipo:'aula', cor:'teal',   temLab:true,  exclusivo:'ambos' },
+        { codigo:'PSI2222', nome:'T. Person. Corporal, Psicodrama e Contemp.',  cr:4, ch:60,  tipo:'aula', cor:'blue',   temLab:false, exclusivo:'ambos' },
+        { codigo:'PSI2223', nome:'Quadros Clín. Humanismo, Fenom. e Contemp.', cr:4, ch:60,  tipo:'aula', cor:'blue',   temLab:false, exclusivo:'ambos' },
+        { codigo:'PSI2224', nome:'Avaliação Psicológica de Adultos',            cr:6, ch:90,  tipo:'aula', cor:'teal',   temLab:true,  exclusivo:'ambos' },
+        { codigo:'PSI2226', nome:'Psicologia das Organizações e do Trabalho',   cr:4, ch:60,  tipo:'aula', cor:'blue',   temLab:false, exclusivo:'ambos' },
+        { codigo:'PSI2227', nome:'Métodos de Pesquisa Qualitativa',             cr:4, ch:60,  tipo:'aula', cor:'indigo', temLab:false, exclusivo:'ambos' },
+      ],
+      lic_extra: [
+        { codigo:'FPH1006', nome:'Gestão e Org. do Trabalho Pedagógico',        cr:4, ch:60,  tipo:'lic',  cor:'purple', temLab:false, exclusivo:'lic' },
+      ],
+      ch_sem_bach: 420, cr_sem_bach: 28,
+      ch_sem_lic:  480, cr_sem_lic:  32,
+    },
+    // ─── PERÍODO 7 ───────────────────────────────────────────────
+    7: {
+      bach: [
+        { codigo:'PSI2228', nome:'Pesq. e Práticas em Psi. Org. e Trabalho',   cr:4, ch:60,  tipo:'estagio', cor:'amber', temLab:false, exclusivo:'ambos', prereq:'PSI2226' },
+        { codigo:'PSI2238', nome:'Psicologia da Saúde e Hospitalar',            cr:4, ch:60,  tipo:'aula', cor:'blue',   temLab:false, exclusivo:'ambos' },
+        { codigo:'PSI2239', nome:'Técnicas Projetivas e Expressivas',           cr:6, ch:90,  tipo:'aula', cor:'teal',   temLab:true,  exclusivo:'ambos' },
+        { codigo:'PSI2240', nome:'Quadros Clínicos em Psicanálise',             cr:4, ch:60,  tipo:'aula', cor:'blue',   temLab:false, exclusivo:'ambos', prereq:'PSI5010' },
+        { codigo:'PSI4003', nome:'Psi., Políticas Públicas e Dir. Humanos',     cr:4, ch:60,  tipo:'aula', cor:'blue',   temLab:false, exclusivo:'ambos' },
+        { codigo:'PSI5020', nome:'Pesq. e Prát. em Psi. Escolar e Educacional',cr:4, ch:60,  tipo:'estagio', cor:'amber', temLab:false, exclusivo:'ambos', prereq:'PSI4110' },
+        { codigo:'PSI7046', nome:'Psicodiagnóstico Infantil',                   cr:4, ch:60,  tipo:'estagio', cor:'amber', temLab:false, exclusivo:'ambos', prereq:'PSI5014' },
+      ],
+      lic_extra: [
+        { codigo:'PSI1014', nome:'Fund. Teór. e Met. do Ensino de Psicologia',  cr:4, ch:60,  tipo:'lic',  cor:'purple', temLab:false, exclusivo:'lic' },
+      ],
+      ch_sem_bach: 450, cr_sem_bach: 30,
+      ch_sem_lic:  510, cr_sem_lic:  34,
+    },
+    // ─── PERÍODO 8 ───────────────────────────────────────────────
+    8: {
+      bach: [
+        { codigo:'LET1003', nome:'LIBRAS',                                      cr:4, ch:60,  tipo:'aula', cor:'gray',   temLab:false, exclusivo:'ambos' },
+        { codigo:'PSI',     nome:'Pesquisa e Práticas nas Clínicas',            cr:4, ch:60,  tipo:'estagio', cor:'amber', temLab:false, exclusivo:'ambos',
+          subturmas:['PSI2247 — Comport.','PSI2248 — Gestalt','PSI2249 — Psicodrama','PSI2250 — Psicanálise','PSI2251 — Sistêmica','PSI2253 — Corporal'] },
+        { codigo:'PSI1016', nome:'Psicologia e Educação Inclusiva',             cr:4, ch:60,  tipo:'aula', cor:'blue',   temLab:false, exclusivo:'ambos' },
+        { codigo:'PSI2210', nome:'Neuropsicologia',                             cr:4, ch:60,  tipo:'aula', cor:'blue',   temLab:false, exclusivo:'ambos' },
+        { codigo:'PSI2245', nome:'Psicodiagnóstico Adulto',                     cr:4, ch:60,  tipo:'estagio', cor:'amber', temLab:false, exclusivo:'ambos', prereq:'PSI2224' },
+        { codigo:'PSI2256', nome:'Pesq. e Práticas em Saúde e Hospitalar',     cr:4, ch:60,  tipo:'estagio', cor:'amber', temLab:false, exclusivo:'ambos', prereq:'PSI2238' },
+        { codigo:'PSI2290', nome:'Práticas em Psi. Social Comunitária',         cr:4, ch:60,  tipo:'ext',  cor:'green',  temLab:false, exclusivo:'ambos' },
+        { codigo:'PSI2291', nome:'TCC I',                                       cr:4, ch:60,  tipo:'tcc',  cor:'red',    temLab:false, exclusivo:'ambos', prereq:'PSI1028/PSI2227' },
+      ],
+      lic_extra: [],
+      ch_sem: 480, cr_sem: 32,
+    },
+    // ─── PERÍODO 9 ───────────────────────────────────────────────
+    9: {
+      bach: [
+        { codigo:'PSI_EST1', nome:'Estágio Supervisionado Específico I',        cr:16, ch:240, tipo:'estagio', cor:'amber', temLab:false, exclusivo:'ambos',
+          subturmas:['PSI9002 Comportamental','PSI9003 TCC','PSI9004 Gestalt','PSI9005 Psicodrama','PSI9006 Psicanálise','PSI9007 Corporal','PSI9008 Sistêmica','PSI9009 Plantão','PSI9010 Escolar','PSI9012 Org./Trabalho','PSI9013 Saúde/Hosp.','PSI9014 Social','PSI9018 Comunitária'] },
+        { codigo:'PSI2241', nome:'Psicologia e Neurociências',                  cr:4, ch:60,  tipo:'aula', cor:'blue',   temLab:false, exclusivo:'ambos' },
+        { codigo:'PSI9001', nome:'TCC II',                                      cr:4, ch:60,  tipo:'tcc',  cor:'red',    temLab:false, exclusivo:'ambos', prereq:'PSI2291' },
+        { codigo:'OPTATIVA', nome:'Optativa I',                                 cr:4, ch:60,  tipo:'aula', cor:'gray',   temLab:false, exclusivo:'ambos' },
+      ],
+      lic_extra: [
+        { codigo:'PSI1085', nome:'Est. Sup. Form. de Professores de Psi. I',   cr:12, ch:180, tipo:'estagio', cor:'purple', temLab:false, exclusivo:'lic' },
+      ],
+      ch_sem_bach: 420, cr_sem_bach: 28,
+      ch_sem_lic:  600, cr_sem_lic:  40,
+    },
+    // ─── PERÍODO 10 ──────────────────────────────────────────────
+    10: {
+      bach: [
+        { codigo:'FIT1500', nome:'Teologia e Ciências da Vida',                 cr:4, ch:60,  tipo:'aula', cor:'gray',   temLab:false, exclusivo:'ambos' },
+        { codigo:'PSI_EST2', nome:'Estágio Supervisionado Específico II',       cr:16, ch:240, tipo:'estagio', cor:'amber', temLab:false, exclusivo:'ambos',
+          subturmas:['PSI0958 Saúde/Hosp.','PSI1058 Comportamental','PSI1059 TCC','PSI1061 Gestalt','PSI1062 Psicodrama','PSI1063 Psicanálise','PSI1064 Corporal','PSI1065 Sistêmica','PSI1066 Plantão','PSI1067 Escolar','PSI1068 Comunitária','PSI1069 Org./Trabalho'] },
+        { codigo:'PSI1055', nome:'Psicologia e Formação Profissional',          cr:4, ch:60,  tipo:'aula', cor:'blue',   temLab:false, exclusivo:'ambos' },
+        { codigo:'OPTATIVA', nome:'Optativa II',                                cr:4, ch:60,  tipo:'aula', cor:'gray',   temLab:false, exclusivo:'ambos' },
+      ],
+      lic_extra: [
+        { codigo:'PSI1018', nome:'Est. Sup. Form. de Professores de Psi. II',  cr:10, ch:150, tipo:'estagio', cor:'purple', temLab:false, exclusivo:'lic' },
+      ],
+      ch_sem_bach: 420, cr_sem_bach: 28,
+      ch_sem_lic:  570, cr_sem_lic:  38,
+    },
+  },
+
+  // ── DISCIPLINAS OPTATIVAS (sugestões no painel) ──────────────
+  optativas: [
+    { codigo:'CSS4210', nome:'Interprofissionalidade e Gestão de Equipes', cr:4 },
+    { codigo:'PSI0917', nome:'Psi. da Gravidez, Parto e Puerpério', cr:4 },
+    { codigo:'PSI0918', nome:'Psicodrama e suas Práticas', cr:4 },
+    { codigo:'PSI0919', nome:'Gestalt-Terapia: Criança, Casal e Família', cr:4 },
+    { codigo:'PSI0920', nome:'Controle e Manejo da Ansiedade e do Estresse', cr:4 },
+    { codigo:'PSI0921', nome:'Comportamento Verbal', cr:4 },
+    { codigo:'PSI0922', nome:'Temas Avançados em Análise do Comportamento', cr:4 },
+    { codigo:'PSI0923', nome:'Freud e a Cultura', cr:4 },
+    { codigo:'PSI0924', nome:'Psicologia do Esporte e do Exercício', cr:4 },
+    { codigo:'PSI0926', nome:'Introdução à Terapia Familiar', cr:4 },
+    { codigo:'PSI0927', nome:'Teoria e Prática Grupais em Diferentes Contextos', cr:4 },
+    { codigo:'PSI0928', nome:'Psicoterapia do Trauma', cr:4 },
+    { codigo:'PSI0929', nome:'Práticas Contemporâneas em Psicoterapia', cr:4 },
+    { codigo:'PSI0930', nome:'Práticas Psicológicas no Ambiente Virtual', cr:4 },
+    { codigo:'PSI0931', nome:'Tec. Aval. Psi. Projetivas e Psicométricas', cr:4 },
+    { codigo:'PSI0932', nome:'Aval. Des. Trein. Des. Educação em Org.', cr:4 },
+    { codigo:'PSI0934', nome:'Técnica Projetiva Rorschach', cr:4 },
+    { codigo:'PSI0936', nome:'Estatística Aplicada à Psicologia', cr:4 },
+    { codigo:'PSI0937', nome:'Psicologia Positiva', cr:4 },
+    { codigo:'PSI0939', nome:'Psicologia e Inteligência Artificial', cr:4 },
+    { codigo:'PSI1080', nome:'Psicologia Jurídica', cr:4 },
+    { codigo:'PSI1081', nome:'Freud e a Invenção da Psicanálise', cr:4 },
+    { codigo:'PSI1259', nome:'Sociedade e Subjetividade no Mundo Contemp.', cr:4 },
+    { codigo:'PSI1340', nome:'Psicologia do Trânsito', cr:4 },
+    { codigo:'PSI1430', nome:'Grupo Centrado Sobre Si', cr:4 },
+    { codigo:'PSI1530', nome:'Psicanálise e Gênero', cr:4 },
+    { codigo:'PSI1540', nome:'Psicopatologia Fundamental', cr:4 },
+    { codigo:'PSI1600', nome:'Clínica Infantil de Base Psicanalítica', cr:4 },
+    { codigo:'PSI1710', nome:'Tratamento dos Transtornos da Ansiedade', cr:4 },
+    { codigo:'PSI2205', nome:'Neuropsicofarmacologia', cr:6 },
+  ],
+};
+
+
+let _sb = null;
+let _usuario = null;
+
+function getSB() {
+  if (!_sb) _sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  return _sb;
+}
+
+// ============================================================
+// CONFIG
+// ============================================================
+const PERIODOS=[1,2,3,4,5,6,7,8,9,10];
+const TURMAS=[
+  {id:'A01',turno:'manha',info:'Matutino'},
+  {id:'A02',turno:'manha',info:'Matutino'},
+  {id:'A03',turno:'manha',info:'Matutino'},
+  {id:'B01',turno:'tarde',info:'Vespertino'},
+  {id:'C01',turno:'noite',info:'Noturno'},
+];
+const HORARIOS={
+  manha:[{id:'M1',label:'1ª Aula',range:'07:15 – 08:45'},{id:'M2',label:'2ª Aula',range:'09:00 – 10:30'},{id:'M3',label:'3ª Aula',range:'10:45 – 12:15'}],
+  tarde:[{id:'T1',label:'1ª Aula',range:'13:30 – 15:10'},{id:'T2',label:'2ª Aula',range:'15:20 – 16:50'},{id:'T3',label:'3ª Aula',range:'17:00 – 18:30'}],
+  noite:[{id:'N1',label:'1ª Aula',range:'17:00 – 18:30'},{id:'N2',label:'2ª Aula',range:'18:45 – 20:15'},{id:'N3',label:'3ª Aula',range:'20:30 – 22:00'}],
+};
+const DIAS=['Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+const CORES=window.CORES=[
+  {id:'blue',bg:'#ddeaf8',bd:'#8ab5dc',tx:'#1a4a7a'},
+  {id:'teal',bg:'#ddf0eb',bd:'#7fc9b3',tx:'#1a5a4a'},
+  {id:'purple',bg:'#ede8f8',bd:'#b09cd4',tx:'#3a2a6a'},
+  {id:'amber',bg:'#fdf0d8',bd:'#d4a830',tx:'#7a4a00'},
+  {id:'coral',bg:'#fde8e0',bd:'#d4896a',tx:'#7a2a10'},
+  {id:'pink',bg:'#fde8f0',bd:'#d490b0',tx:'#7a1a40'},
+  {id:'green',bg:'#e0f0e0',bd:'#80c080',tx:'#1a5a1a'},
+  {id:'gray',bg:'#ececec',bd:'#b0b0b0',tx:'#404040'},
+  {id:'indigo',bg:'#e0e8f8',bd:'#7090d0',tx:'#1a2a6a'},
+  {id:'red',bg:'#fde8e8',bd:'#d48080',tx:'#7a1a1a'},
+  {id:'olive',bg:'#edf0d8',bd:'#a8b870',tx:'#404a10'},
+  {id:'cyan',bg:'#d8f0f8',bd:'#60b8d0',tx:'#0a4a5a'},
+];
+const TIPO_COR={aula:'blue',lab:'teal',estagio:'amber',lic:'purple',tcc:'red'};
+const MAX_LAB=3;
+
+// ============================================================
+// ESTADO
+// ============================================================
+let E={
+  periodo:1, turma:'A01',
+  corSel:'blue', mCorSel:'blue',
+  slotAtual:null,
+  grade:{},         // [per][turma][dia][hid] = [{...slot}]
+  alunos:{},        // [per][turno] = n
+  caps:{aula:60,lab:20,estagio:10,tcc:10,lic:60},
+  espacoUnico:['PSI1143','CBB1150'],
+};
+
+function load(){
+  try{
+    const s=localStorage.getItem('gpuc3');
+    if(s){const d=JSON.parse(s);
+      if(d.grade) E.grade=d.grade;
+      if(d.alunos) E.alunos=d.alunos;
+      if(d.caps) E.caps={...E.caps,...d.caps};
+      if(d.espacoUnico) E.espacoUnico=d.espacoUnico;
+    }
+  }catch(e){}
+}
+// ── SUPABASE: salvar slot ──────────────────────────────────
+async function saveSlotDB(p,t,di,hid,slots){
+  const sb=getSB();
+  const email=_usuario?.email||'anon';
+
+  // Remove todos os slots existentes dessa célula
+  await sb.from('grade_slots').delete()
+    .eq('periodo',p).eq('turma',t)
+    .eq('dia',di).eq('horario',hid)
+    .eq('semestre',SEMESTRE);
+
+  // Insere os slots atuais
+  if(slots&&slots.length){
+    const rows=slots.map((s,idx)=>({
+      periodo:p, turma:t, dia:di, horario:hid, posicao:idx,
+      codigo:s.codigo||null, nome:s.nome, subtitulo:s.sub||null,
+      tipo:s.tipo, cor:s.cor,
+      alunos:s.alunos?parseInt(s.alunos):null,
+      semestre:SEMESTRE,
+      criado_por:email, atualizado_por:email,
+    }));
+    const {error}=await sb.from('grade_slots').insert(rows);
+    if(error){setConStatus('error');console.error(error);return;}
+  }
+
+  // Registra no histórico
+  await sb.from('historico').insert({
+    tabela:'grade_slots', operacao: slots?.length?'UPDATE':'DELETE',
+    dados_depois:{periodo:p,turma:t,dia:di,horario:hid,slots},
+    usuario:email,
+  });
+
+  setConStatus('online');
+  cacheLocal();
+}
+
+async function saveAlunosDB(p,turno,qtd){
+  const sb=getSB();
+  const email=_usuario?.email||'anon';
+  await sb.from('alunos_previstos').upsert({
+    periodo:p, turno, quantidade:qtd, semestre:SEMESTRE,
+    atualizado_por:email,
+  },{onConflict:'periodo,turno,semestre'});
+  cacheLocal();
+}
+
+async function saveCapsDB(){
+  const sb=getSB();
+  const email=_usuario?.email||'anon';
+  await sb.from('configuracoes').upsert([
+    {chave:'caps',valor:E.caps,atualizado_por:email},
+    {chave:'espacoUnico',valor:E.espacoUnico,atualizado_por:email},
+  ],{onConflict:'chave'});
+  cacheLocal();
+}
+
+function save(){cacheLocal();}
+
+function getSlots(p,t,d,h){return E.grade?.[p]?.[t]?.[d]?.[h]||[];}
+function setSlots(p,t,d,h,arr){
+  if(!E.grade[p])E.grade[p]={};
+  if(!E.grade[p][t])E.grade[p][t]={};
+  if(!E.grade[p][t][d])E.grade[p][t][d]={};
+  if(!arr||!arr.length)delete E.grade[p][t][d][h];
+  else E.grade[p][t][d][h]=arr;
+  save();
+  saveSlotDB(p,t,d,h,arr); // persiste no banco
+}
+
+function getAlunos(p,turno){return parseInt(E.alunos?.[p]?.[turno])||0;}
+function setAlunos(p,turno,v){if(!E.alunos[p])E.alunos[p]={};E.alunos[p][turno]=v;save();saveAlunosDB(p,turno,v);}
+
+function getCap(tipo){return parseInt(E.caps[tipo])||10;}
+function turnoAtual(){return TURMAS.find(t=>t.id===E.turma).turno;}
+function alunosAtual(){return getAlunos(E.periodo,turnoAtual());}
+
+// ============================================================
+// DIMENSIONAMENTO
+// ============================================================
+function calcDim(alunos){
+  const caps=E.caps;
+  function turmas(cap){return alunos>0?Math.ceil(alunos/cap):0;}
+  return{
+    aula:{need:turmas(caps.aula),cap:caps.aula,label:'Preleções'},
+    lab:{need:turmas(caps.lab),cap:caps.lab,label:'Subturmas LAB'},
+    estagio:{need:turmas(caps.estagio),cap:caps.estagio,label:'Subturmas Estágio'},
+    tcc:{need:turmas(caps.tcc),cap:caps.tcc,label:'Grupos TCC'},
+    lic:{need:turmas(caps.lic),cap:caps.lic,label:'Turmas Licenc.'},
+  };
+}
+
+function contarAlocados(tipo){
+  // Conta slots do tipo na grade do período atual (todas as turmas do mesmo turno)
+  const turno=turnoAtual();
+  const turmasMesmoTurno=TURMAS.filter(t=>t.turno===turno).map(t=>t.id);
+  let count=0;
+  DIAS.forEach((_,di)=>{
+    HORARIOS[turno].forEach(h=>{
+      // Para preleção: conta por turma (cada turma é 1 preleção)
+      // Para lab/estagio/tcc: conta cada slot individual
+      turmasMesmoTurno.forEach(tid=>{
+        const slots=getSlots(E.periodo,tid,di,h.id);
+        slots.forEach(s=>{if(s.tipo===tipo)count++;});
+      });
+    });
+  });
+  // Para preleção, divide por número de turmas do turno (pois mesma disciplina aparece em todas)
+  // Na verdade retornamos o total de slots alocados daquele tipo naquele turno
+  return count;
+}
+
+function recalcularDim(){
+  const turno=turnoAtual();
+  const alunos=getAlunos(E.periodo,turno);
+  const dim=calcDim(alunos);
+
+  // Atualiza painel
+  // Mostra CH e créditos do período da matriz
+  const _pd = MATRIZ.disciplinas[E.periodo];
+  if (_pd) {
+    const _ch  = E_MATRIZ==='bach_lic' ? (_pd.ch_sem_lic||_pd.ch_sem||'—') : (_pd.ch_sem_bach||_pd.ch_sem||'—');
+    const _cr  = E_MATRIZ==='bach_lic' ? (_pd.cr_sem_lic||_pd.cr_sem||'—') : (_pd.cr_sem_bach||_pd.cr_sem||'—');
+    const _nel = document.getElementById('matrizPeriodoInfo');
+    if (_nel) _nel.textContent = `Matriz: ${_ch}h / ${_cr} créditos no semestre`;
+  }
+  document.getElementById('dimTurnoLabel').textContent=
+    turno==='manha'?'Matutino':turno==='tarde'?'Vespertino':'Noturno';
+
+  const cards=document.getElementById('dimCards');
+  cards.innerHTML='';
+
+  const tipos=['aula','lab','estagio','tcc'];
+  tipos.forEach(tipo=>{
+    const d=dim[tipo];
+    const aloc=contarAlocados(tipo);
+
+    let cls='dc-neu', status='—';
+    if(alunos>0){
+      if(aloc===0&&d.need>0){cls='dc-under';status=`0 / ${d.need} alocadas`;}
+      else if(aloc<d.need){cls='dc-under';status=`${aloc} / ${d.need} — faltam ${d.need-aloc}`;}
+      else if(aloc>d.need){cls='dc-over';status=`${aloc} / ${d.need} — excesso de ${aloc-d.need}`;}
+      else{cls='dc-ok';status=`${aloc} / ${d.need} ✓`;}
+    }
+
+    const div=document.createElement('div');
+    div.className=`dim-card ${cls}`;
+    div.innerHTML=`
+      <div class="dim-card-label">${d.label}</div>
+      <div class="dim-card-val">${d.need>0?d.need:'—'}</div>
+      <div class="dim-card-sub">${alunos>0?`max ${d.cap} p/ grupo · ${status}`:'Informe os alunos previstos'}</div>
+    `;
+    cards.appendChild(div);
+  });
+
+  // Alertas gerais
+  renderAlertasGerais(alunos,dim);
+  // Atualiza legenda caps
+  atualizarLegendaCaps();
+}
+
+function renderAlertasGerais(alunos,dim){
+  const abD=document.getElementById('abDanger');
+  const abW=document.getElementById('abWarn');
+  const abO=document.getElementById('abOk');
+
+  if(alunos===0){
+    abD.classList.remove('show');abW.classList.remove('show');abO.classList.remove('show');return;
+  }
+
+  const msgs=[];
+  ['aula','lab','estagio','tcc'].forEach(tipo=>{
+    const d=dim[tipo];
+    const aloc=contarAlocados(tipo);
+    if(aloc>d.need) msgs.push(`⚠ ${d.label}: ${aloc} alocadas, precisaria de ${d.need}.`);
+  });
+
+  if(msgs.length>0){
+    abW.textContent=msgs.join('  |  ');abW.classList.add('show');
+    abD.classList.remove('show');abO.classList.remove('show');
+  } else {
+    abW.classList.remove('show');abD.classList.remove('show');
+    abO.textContent=`✓ Dimensionamento do ${turnoAtual()==='manha'?'matutino':turnoAtual()==='tarde'?'vespertino':'noturno'} consistente com ${alunos} alunos previstos.`;
+    abO.classList.add('show');
+  }
+}
+
+function atualizarLegendaCaps(){
+  document.getElementById('lgAula').textContent=getCap('aula');
+  document.getElementById('lgLab').textContent=getCap('lab');
+  document.getElementById('lgEst').textContent=getCap('estagio');
+  document.getElementById('lgTcc').textContent=getCap('tcc');
+  document.getElementById('lgLic').textContent=getCap('lic');
+}
+
+// ============================================================
+// VALIDAÇÃO
+// ============================================================
+function verificarConflitos(p,t,di,hid,codigo,tipo,editIdx){
+  const hard=[],warn=[],cap=[],info=[];
+  const slots=getSlots(p,t,di,hid);
+
+  // 1. Preleção duplicada
+  if(['aula','lic','tcc'].includes(tipo)){
+    const outra=slots.filter((_,i)=>i!==editIdx&&['aula','lic','tcc'].includes(slots[i]?.tipo));
+    if(outra.length>0) hard.push(`Já existe preleção neste horário: "${outra[0].nome||outra[0].codigo}". Preleções não podem coexistir.`);
+  }
+
+  // 2. LAB limite 3
+  if(tipo==='lab'){
+    const nLabs=slots.filter((_,i)=>i!==editIdx&&slots[i]?.tipo==='lab').length;
+    if(nLabs>=MAX_LAB) hard.push(`Limite de ${MAX_LAB} subturmas LAB por célula atingido.`);
+  }
+
+  // 3. Espaço físico único
+  if(codigo&&E.espacoUnico.includes(codigo)){
+    if(tipo==='lab'){
+      const conflitos=[];
+      TURMAS.forEach(tt=>{
+        if(tt.id===t)return;
+        const out=getSlots(p,tt.id,di,hid);
+        if(out.some(s=>s.codigo===codigo&&s.tipo==='lab')) conflitos.push(tt.id);
+      });
+      const mesmaCel=slots.filter((_,i)=>i!==editIdx&&slots[i]?.codigo===codigo&&slots[i]?.tipo==='lab');
+      if(mesmaCel.length>0) hard.push(`Espaço único: ${codigo} já alocado neste slot nesta turma.`);
+      if(conflitos.length>0) hard.push(`Espaço único: ${codigo} já está na turma ${conflitos.join(', ')} neste horário.`);
+      if(!conflitos.length&&!mesmaCel.length) info.push(`${codigo} tem espaço único. Horário disponível em todas as turmas.`);
+    }
+  }
+
+  // 4. Capacidade
+  const nAlunos=parseInt(document.getElementById('mAlunos')?.value)||0;
+  if(nAlunos>0){
+    const maxCap=getCap(tipo);
+    if(nAlunos>maxCap) cap.push(`Capacidade excedida: ${nAlunos} alunos informados, máximo permitido para ${tipoLabel(tipo)} é ${maxCap}.`);
+    else cap.push(`${nAlunos} alunos · máximo ${maxCap} · ${Math.round(nAlunos/maxCap*100)}% da capacidade`);
+  }
+
+  // 5. Interjornada — M1 manhã após N3 noturno do dia anterior
+  if (codigo) {
+    const msgInter = verificarInterjornada(p, t, di, hid, codigo);
+    if (msgInter) hard.push(msgInter);
+    // Interjornada inversa — N3 noturno antes de M1 manhã do dia seguinte
+    const msgInterN = verificarInterjornadaNoturno(p, t, di, hid, codigo);
+    if (msgInterN) hard.push(msgInterN);
+  }
+
+  return{hard,warn,cap,info};
+}
+
+function temConflitoDuro(p,t,di,hid,idx){
+  const slots=getSlots(p,t,di,hid);
+  if(idx>=slots.length)return false;
+  const s=slots[idx];
+  if(['aula','lic','tcc'].includes(s.tipo)){
+    const out=slots.filter((_,i)=>i!==idx&&['aula','lic','tcc'].includes(slots[i]?.tipo));
+    if(out.length>0)return'preleção duplicada';
+  }
+  if(s.codigo&&E.espacoUnico.includes(s.codigo)&&s.tipo==='lab'){
+    for(const tt of TURMAS){
+      if(tt.id===t)continue;
+      const out=getSlots(p,tt.id,di,hid);
+      if(out.some(x=>x.codigo===s.codigo&&x.tipo==='lab'))return`conflito turma ${tt.id}`;
+    }
+    const mc=slots.filter((_,i)=>i!==idx&&slots[i]?.codigo===s.codigo&&slots[i]?.tipo==='lab');
+    if(mc.length>0)return'duplicado na célula';
+  }
+  // Interjornada
+  const cfInter = temConflitoDuro_interjornada(p, t, di, hid, idx);
+  if (cfInter) return cfInter;
+
+  return false;
+}
+
+function temConflitoCap(s){
+  if(!s.alunos||!s.tipo)return false;
+  return parseInt(s.alunos)>getCap(s.tipo);
+}
+
+// Interjornada: N3 noturno → M1 manhã do dia seguinte (mín 11h entre 22:00 e 07:15 = 9h15 apenas)
+// DIAS = [Seg=0, Ter=1, Qua=2, Qui=3, Sex=4, Sáb=5]
+// Sábado (5) não tem dia seguinte na semana acadêmica → não aplica
+function temConflitoDuro_interjornada(p, t, di, hid, idx) {
+  // Só verifica se estamos no M1 (07:15-08:45) de um dia que tem dia anterior (di >= 1, exceto seg=0 não tem dia anterior)
+  if (hid !== 'M1') return false; // só bloqueia 1º horário manhã
+  if (di === 0) return false;     // segunda não tem noturno anterior na semana
+
+  const slots = getSlots(p, t, di, hid);
+  if (idx >= slots.length) return false;
+  const s = slots[idx];
+  if (!s.codigo) return false;
+
+  const diaAnterior = di - 1; // dia anterior (Seg=0 seria Dom, não existe)
+
+  // Verifica se o mesmo código está no N3 do dia anterior em qualquer turma noturna
+  const turmasNoturnas = TURMAS.filter(tt => tt.turno === 'noite').map(tt => tt.id);
+  for (const tid of turmasNoturnas) {
+    const slotsN3 = getSlots(p, tid, diaAnterior, 'N3');
+    if (slotsN3.some(sn => sn.codigo === s.codigo)) {
+      return `interjornada — ${s.codigo} no noturno ${DIAS[diaAnterior]} (22:00) e manhã ${DIAS[di]} (07:15)`;
+    }
+  }
+  return false;
+}
+
+// Verifica se uma célula M1 deve mostrar aviso de interjornada para slot sendo inserido (modal)
+function verificarInterjornada(p, t, di, hid, codigo) {
+  if (hid !== 'M1' || di === 0 || !codigo) return null;
+  const diaAnterior = di - 1;
+  const turmasNoturnas = TURMAS.filter(tt => tt.turno === 'noite').map(tt => tt.id);
+  for (const tid of turmasNoturnas) {
+    const slotsN3 = getSlots(p, tid, diaAnterior, 'N3');
+    if (slotsN3.some(sn => sn.codigo === codigo)) {
+      return `Interjornada: ${codigo} está alocado no noturno ${DIAS[diaAnterior]} às 20:30–22:00. Alocar no 1º horário da manhã de ${DIAS[di]} viola o descanso mínimo de 11h (CLT).`;
+    }
+  }
+
+  // Também verifica o inverso: se estamos no N3 e o código já está no M1 do dia seguinte
+  // (verificação bidirecional no modal — se estivermos salvando no N3)
+  return null;
+}
+
+// Verifica interjornada para slot sendo inserido no N3 noturno
+function verificarInterjornadaNoturno(p, t, di, hid, codigo) {
+  if (hid !== 'N3' || !codigo) return null;
+  if (di >= 5) return null; // sábado não tem dia seguinte
+
+  const diaSeguinte = di + 1;
+  const turmasMatutinas = TURMAS.filter(tt => tt.turno === 'manha').map(tt => tt.id);
+  const conflitos = [];
+  for (const tid of turmasMatutinas) {
+    const slotsM1 = getSlots(p, tid, diaSeguinte, 'M1');
+    if (slotsM1.some(sm => sm.codigo === codigo)) {
+      conflitos.push(tid);
+    }
+  }
+  if (conflitos.length > 0) {
+    return `Interjornada: ${codigo} já está no 1º horário da manhã de ${DIAS[diaSeguinte]} (turma ${conflitos.join(', ')}). Alocar no N3 de ${DIAS[di]} viola o descanso mínimo de 11h (CLT).`;
+  }
+  return null;
+}
+
+function ocupadoEmOutra(p,t,di,hid){
+  const r=[];
+  E.espacoUnico.forEach(cod=>{
+    TURMAS.forEach(tt=>{
+      if(tt.id===t)return;
+      const out=getSlots(p,tt.id,di,hid);
+      const found=out.find(s=>s.codigo===cod&&s.tipo==='lab');
+      if(found&&!getSlots(p,t,di,hid).some(s=>s.codigo===cod))
+        r.push({turma:tt.id,codigo:cod,nome:found.nome});
+    });
+  });
+  return r;
+}
+
+function tipoLabel(tipo){
+  return{aula:'Preleção',lab:'Laboratório',estagio:'Estágio',tcc:'TCC',lic:'Licenciatura'}[tipo]||tipo;
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function renderGrade(){
+  const tObj=TURMAS.find(t=>t.id===E.turma);
+  const hors=HORARIOS[tObj.turno];
+  document.getElementById('gTitle').textContent=`${E.periodo}º Período`;
+  const badge=document.getElementById('gBadge');
+  badge.textContent=tObj.info;
+  badge.className='gb b-'+tObj.turno;
+  document.getElementById('gInfo').textContent=`Turma ${E.turma}`;
+
+  renderStats();
+  recalcularDim();
+  renderSugestoes();
+
+  const table=document.getElementById('gradeTable');
+  table.innerHTML='';
+  const thead=document.createElement('thead');
+  const trH=document.createElement('tr');
+  const th0=document.createElement('th');th0.className='hth';th0.textContent='Horário';trH.appendChild(th0);
+  DIAS.forEach(d=>{const th=document.createElement('th');th.textContent=d;trH.appendChild(th);});
+  thead.appendChild(trH);table.appendChild(thead);
+
+  const tbody=document.createElement('tbody');
+  hors.forEach(h=>{
+    const tr=document.createElement('tr');
+    const tdH=document.createElement('td');tdH.className='hc';
+    tdH.innerHTML=`<span class="hn">${h.label}</span><span class="hr">${h.range}</span>`;
+    tr.appendChild(tdH);
+    DIAS.forEach((_,di)=>{
+      const td=document.createElement('td');
+      td.innerHTML=renderCell(E.periodo,E.turma,di,h.id);
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  renderLegenda();
+}
+
+function renderCell(p,t,di,hid){
+  const slots=getSlots(p,t,di,hid);
+  const bloq=ocupadoEmOutra(p,t,di,hid);
+  let h='<div class="cc">';
+  slots.forEach((s,idx)=>{
+    const cor=CORES.find(c=>c.id===s.cor)||CORES[0];
+    const cf=temConflitoDuro(p,t,di,hid,idx);
+    const cfCap=temConflitoCap(s);
+    const isInter = cf && cf.startsWith('interjornada');
+    let cls='slot';
+    if(cf&&!isInter)cls+=' cf-hard';
+    else if(isInter)cls+=' cf-inter';
+    else if(cfCap)cls+=' cf-cap';
+    const bg=cf?'':cor.bg, bd=cf?'':cor.bd;
+    const tx=isInter?'#6b3fa0':cf?'var(--conflict)':cfCap?'var(--warn)':cor.tx;
+    const capInfo=s.alunos?`<div class="s-cap" style="color:${cfCap?'var(--warn)':'inherit'}">${cfCap?'⚠':'✓'} ${s.alunos} alunos</div>`:'';
+    const cfMsg=isInter?`<div class="s-cf" style="color:#6b3fa0">⚠ interjornada</div>`:cf?`<div class="s-cf">⚠ ${cf}</div>`:cfCap?`<div class="s-cf" style="color:var(--warn)">⚠ cap. excedida</div>`:'';
+    h+=`<div class="${cls}" style="background:${bg};border-color:${bd};color:${tx}" onclick="abrirModal(${di},'${hid}',${idx})">
+      <div class="s-del" onclick="event.stopPropagation();remover(${di},'${hid}',${idx})">×</div>
+      ${s.codigo?`<div class="s-code">${s.codigo}</div>`:''}
+      <div class="s-name">${s.nome||''}</div>
+      ${s.sub?`<div class="s-sub">${s.sub}</div>`:''}
+      ${capInfo}${cfMsg}
+    </div>`;
+  });
+  bloq.forEach(b=>{
+    h+=`<div class="slot-blocked">🔴 ${b.codigo} – T.${b.turma}</div>`;
+  });
+  h+=`<div class="slot empty" onclick="abrirModal(${di},'${hid}',null)">+</div>`;
+  h+='</div>';
+  return h;
+}
+
+function renderStats(){
+  const tObj=TURMAS.find(t=>t.id===E.turma);
+  const hors=HORARIOS[tObj.turno];
+  let total=0,cfs=0,capErr=0,labs=0,aulas=0;
+  DIAS.forEach((_,di)=>{
+    hors.forEach(h=>{
+      const slots=getSlots(E.periodo,E.turma,di,h.id);
+      slots.forEach((s,idx)=>{
+        total++;
+        if(['aula','lic','tcc'].includes(s.tipo))aulas++;
+        if(s.tipo==='lab')labs++;
+        const cfCheck=temConflitoDuro(E.periodo,E.turma,di,h.id,idx);
+        if(cfCheck)cfs++;
+        if(temConflitoCap(s))capErr++;
+      });
+    });
+  });
+  const errCls=cfs>0?' sc-err':'';
+  const capCls=capErr>0?' sc-err':'';
+  document.getElementById('statsBar').innerHTML=`
+    <div class="sc"><div class="sc-l">Total blocos</div><div class="sc-v">${total}</div></div>
+    <div class="sc"><div class="sc-l">Preleções</div><div class="sc-v">${aulas}</div></div>
+    <div class="sc"><div class="sc-l">Labs</div><div class="sc-v">${labs}</div></div>
+    <div class="sc${errCls}"><div class="sc-l">Conflitos</div><div class="sc-v">${cfs}</div></div>
+    <div class="sc${capCls}"><div class="sc-l">Cap. excedida</div><div class="sc-v">${capErr}</div></div>
+  `;
+}
+
+function renderLegenda(){
+  const tObj=TURMAS.find(t=>t.id===E.turma);
+  const hors=HORARIOS[tObj.turno];
+  const discs={};
+  DIAS.forEach((_,di)=>{
+    hors.forEach(h=>{
+      getSlots(E.periodo,E.turma,di,h.id).forEach(s=>{
+        if(s.codigo&&!discs[s.codigo])discs[s.codigo]=s;
+      });
+    });
+  });
+  const leg=document.getElementById('legenda');
+  leg.innerHTML='';
+  Object.values(discs).forEach(s=>{
+    const cor=CORES.find(c=>c.id===s.cor)||CORES[0];
+    const div=document.createElement('div');div.className='li2';
+    div.innerHTML=`<div class="ld" style="background:${cor.bg};border:1.5px solid ${cor.bd}"></div>
+      <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--text-3)">${s.codigo}</span>
+      <span>${s.nome}</span>`;
+    leg.appendChild(div);
+  });
+}
+
+// ============================================================
+// MODAL
+// ============================================================
+function abrirModal(di,hid,idx){
+  E.slotAtual={di,hid,idx};
+  renderSugestoes();
+  const slots=getSlots(E.periodo,E.turma,di,hid);
+  const s=idx!==null&&idx!==undefined?slots[idx]:null;
+  const tObj=TURMAS.find(t=>t.id===E.turma);
+  const h=HORARIOS[tObj.turno].find(h=>h.id===hid);
+
+  document.getElementById('moTitle').textContent=s?'Editar disciplina':'Adicionar disciplina';
+  document.getElementById('moInfo').textContent=`${DIAS[di]} · ${h.label} (${h.range}) · Turma ${E.turma} · ${E.periodo}º Período`;
+
+  document.getElementById('mCod').value=s?.codigo||document.getElementById('fCod').value||'';
+  document.getElementById('mNome').value=s?.nome||document.getElementById('fNome').value||'';
+  document.getElementById('mSub').value=s?.sub||document.getElementById('fSub').value||'';
+  document.getElementById('mTipo').value=s?.tipo||document.getElementById('fTipo').value||'aula';
+  document.getElementById('mAlunos').value=s?.alunos||'';
+
+  const corI=s?.cor||E.corSel;
+  E.mCorSel=corI;
+  initCores('cg2',corI);
+  ['maHard','maWarn','maCap','maInfo'].forEach(id=>{document.getElementById(id).classList.remove('show');});
+  document.getElementById('moEdit').classList.add('open');
+  validar();
+  setTimeout(()=>document.getElementById('mNome').focus(),80);
+}
+
+function validar(){
+  if(!E.slotAtual)return;
+  const {di,hid,idx}=E.slotAtual;
+  const cod=document.getElementById('mCod').value.trim().toUpperCase();
+  const tipo=document.getElementById('mTipo').value;
+  const {hard,warn,cap,info}=verificarConflitos(E.periodo,E.turma,di,hid,cod,tipo,idx);
+
+  const show=(id,msg)=>{const el=document.getElementById(id);if(msg){el.textContent=msg;el.classList.add('show');}else el.classList.remove('show');};
+  // Separa conflitos de interjornada dos demais hard conflicts
+  const hardInter=hard.filter(m=>m.startsWith('Interjornada'));
+  const hardOther=hard.filter(m=>!m.startsWith('Interjornada'));
+  show('maHard',hardOther.length?'⚠ '+hardOther.join(' | '):'');
+  show('maInter',hardInter.length?'⏰ '+hardInter.join(' | '):'');
+  show('maWarn',warn.length?'ℹ '+warn.join(' | '):'');
+  show('maCap',cap.length?cap.join(' | '):'');
+  show('maInfo',info.length?info.join(' | '):'');
+
+  const btn=document.getElementById('btnSalvar');
+  if(hard.length){btn.textContent='Salvar mesmo assim';btn.className='btn btn-danger';}
+  else{btn.textContent='Salvar';btn.className='btn btn-p';}
+}
+
+function salvar(){
+  const {di,hid,idx}=E.slotAtual;
+  const nome=document.getElementById('mNome').value.trim();
+  if(!nome){document.getElementById('mNome').focus();return;}
+  const dados={
+    codigo:document.getElementById('mCod').value.trim().toUpperCase(),
+    nome,
+    sub:document.getElementById('mSub').value.trim(),
+    tipo:document.getElementById('mTipo').value,
+    cor:E.mCorSel||E.corSel,
+    alunos:document.getElementById('mAlunos').value||'',
+  };
+  const slots=[...getSlots(E.periodo,E.turma,di,hid)];
+  if(idx!==null&&idx!==undefined)slots[idx]=dados;
+  else slots.push(dados);
+  setSlots(E.periodo,E.turma,di,hid,slots);
+  fechaMo(null,'moEdit');
+  renderGrade();
+  setStatus(`"${nome}" salvo`);
+}
+
+function remover(di,hid,idx){
+  const slots=getSlots(E.periodo,E.turma,di,hid);
+  const s=slots[idx];
+  if(!s)return;
+  if(!confirm(`Remover "${s.nome||s.codigo}"?`))return;
+  setSlots(E.periodo,E.turma,di,hid,slots.filter((_,i)=>i!==idx));
+  renderGrade();
+}
+
+function fechaMo(e,id){
+  if(!e||e.target===document.getElementById(id))
+    document.getElementById(id).classList.remove('open');
+}
+
+// ============================================================
+// ALUNOS / CAPS / EU
+// ============================================================
+function salvarAlunos(){
+  const p=E.periodo;
+  setAlunos(p,'manha',parseInt(document.getElementById('alManha').value)||0);
+  setAlunos(p,'tarde',parseInt(document.getElementById('alTarde').value)||0);
+  setAlunos(p,'noite',parseInt(document.getElementById('alNoite').value)||0);
+}
+function salvarCaps(){
+  E.caps.aula=parseInt(document.getElementById('capAula').value)||60;
+  E.caps.lab=parseInt(document.getElementById('capLab').value)||20;
+  E.caps.estagio=parseInt(document.getElementById('capEstagio').value)||10;
+  E.caps.tcc=parseInt(document.getElementById('capTcc').value)||10;
+  E.caps.lic=parseInt(document.getElementById('capLic').value)||60;
+  save();
+}
+function carregarAlunos(){
+  const p=E.periodo;
+  document.getElementById('alManha').value=getAlunos(p,'manha')||'';
+  document.getElementById('alTarde').value=getAlunos(p,'tarde')||'';
+  document.getElementById('alNoite').value=getAlunos(p,'noite')||'';
+}
+function carregarCaps(){
+  document.getElementById('capAula').value=E.caps.aula||60;
+  document.getElementById('capLab').value=E.caps.lab||20;
+  document.getElementById('capEstagio').value=E.caps.estagio||10;
+  document.getElementById('capTcc').value=E.caps.tcc||10;
+  document.getElementById('capLic').value=E.caps.lic||60;
+}
+
+function addEU(){
+  const v=document.getElementById('novaEU').value.trim().toUpperCase();
+  if(!v||E.espacoUnico.includes(v))return;
+  E.espacoUnico.push(v);
+  document.getElementById('novaEU').value='';
+  save();renderEU();renderGrade();
+  setStatus(`${v} adicionado como espaço único`);
+}
+function remEU(cod){
+  E.espacoUnico=E.espacoUnico.filter(c=>c!==cod);
+  save();renderEU();renderGrade();
+}
+function renderEU(){
+  const list=document.getElementById('euList');list.innerHTML='';
+  E.espacoUnico.forEach(cod=>{
+    const div=document.createElement('div');div.className='eu-item';
+    div.innerHTML=`<span class="eu-code">${cod}</span>
+      <button onclick="remEU('${cod}')" style="background:none;border:none;cursor:pointer;color:var(--text-3);font-size:12px;padding:1px 4px;">×</button>`;
+    list.appendChild(div);
+  });
+}
+
+// ============================================================
+// CORES / TIPOS
+// ============================================================
+function initCores(id,selId){
+  const g=document.getElementById(id);g.innerHTML='';
+  CORES.forEach(c=>{
+    const d=document.createElement('div');
+    d.className='co'+(c.id===selId?' sel':'');
+    d.style.background=c.bg;d.style.borderColor=c.id===selId?c.bd:'transparent';
+    d.onclick=()=>{
+      g.querySelectorAll('.co').forEach(el=>{el.classList.remove('sel');el.style.borderColor='transparent';});
+      d.classList.add('sel');d.style.borderColor=c.bd;
+      if(id==='cg1')E.corSel=c.id;
+      if(id==='cg2')E.mCorSel=c.id;
+    };
+    g.appendChild(d);
+  });
+}
+function syncCor(tipo,gid){
+  const cor=TIPO_COR[tipo]||'blue';
+  if(gid==='cg1')E.corSel=cor;
+  if(gid==='cg2')E.mCorSel=cor;
+  initCores(gid,cor);
+}
+
+// ============================================================
+// INIT SIDEBAR
+// ============================================================
+function initPer(){
+  const g=document.getElementById('perGrid');g.innerHTML='';
+  PERIODOS.forEach(p=>{
+    const b=document.createElement('button');
+    b.className='per-btn'+(p===E.periodo?' active':'');
+    b.textContent=p+'º';
+    b.onclick=()=>{E.periodo=p;initPer();carregarAlunos();renderGrade();renderSugestoes();};
+    g.appendChild(b);
+  });
+}
+function initTurmas(){
+  const l=document.getElementById('turmaList');l.innerHTML='';
+  TURMAS.forEach(t=>{
+    const b=document.createElement('button');
+    b.className='turma-btn'+(t.id===E.turma?' active':'');
+    b.innerHTML=`<div class="t-dot dot-${t.turno}"></div><span>${t.id}</span><span class="t-info">${t.info}</span>`;
+    b.onclick=()=>{E.turma=t.id;initTurmas();renderGrade();};
+    l.appendChild(b);
+  });
+}
+
+// ============================================================
+// COPIAR / EXPORT / IMPORT
+// ============================================================
+function abrirCopiar(){
+  document.getElementById('cpPer').innerHTML=PERIODOS.map(p=>`<option value="${p}" ${p===E.periodo?'selected':''}>${p}º Período</option>`).join('');
+  document.getElementById('cpTur').innerHTML=TURMAS.map(t=>`<option value="${t.id}" ${t.id===E.turma?'selected':''}>${t.id} (${t.info})</option>`).join('');
+  document.getElementById('moCopiar').classList.add('open');
+}
+function confirmarCopiar(){
+  const pO=parseInt(document.getElementById('cpPer').value);
+  const tO=document.getElementById('cpTur').value;
+  if(pO===E.periodo&&tO===E.turma){alert('Selecione origem diferente.');return;}
+  const orig=E.grade?.[pO]?.[tO];
+  if(!orig||!Object.keys(orig).length){alert('Grade de origem vazia.');return;}
+  if(!confirm(`Copiar de ${tO} (${pO}º) para ${E.turma} (${E.periodo}º)? Sobrescreve grade atual.`))return;
+  if(!E.grade[E.periodo])E.grade[E.periodo]={};
+  E.grade[E.periodo][E.turma]=JSON.parse(JSON.stringify(orig));
+  save();fechaMo(null,'moCopiar');renderGrade();
+  setStatus(`Copiado de ${tO} (${pO}º período)`);
+}
+function limpar(){
+  if(!confirm(`Limpar grade ${E.periodo}º / ${E.turma}?`))return;
+  if(E.grade[E.periodo])delete E.grade[E.periodo][E.turma];
+  save();renderGrade();setStatus('Grade limpa');
+}
+function exportar(){
+  const d=JSON.stringify({grade:E.grade,alunos:E.alunos,caps:E.caps,espacoUnico:E.espacoUnico},null,2);
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([d],{type:'application/json'}));
+  a.download='grade_psicologia_2026_2.json';a.click();
+  setStatus('Exportado');
+}
+function importar(){
+  const input=document.createElement('input');input.type='file';input.accept='.json';
+  input.onchange=e=>{
+    const f=e.target.files[0];if(!f)return;
+    const r=new FileReader();
+    r.onload=ev=>{
+      try{
+        const d=JSON.parse(ev.target.result);
+        if(!confirm('Importar? Substitui todos os dados.'))return;
+        if(d.grade)E.grade=d.grade;
+        if(d.alunos)E.alunos=d.alunos;
+        if(d.caps)E.caps={...E.caps,...d.caps};
+        if(d.espacoUnico)E.espacoUnico=d.espacoUnico;
+        save();carregarAlunos();carregarCaps();renderEU();initPer();renderGrade();
+        setStatus('Importado');
+      }catch{alert('Arquivo inválido.');}
+    };
+    r.readAsText(f);
+  };
+  input.click();
+}
+
+function setStatus(msg){
+  const el=document.getElementById('statusMsg');
+  el.textContent=msg;el.style.color='var(--ok)';
+  setTimeout(()=>{el.textContent='Clique em um slot para editar';el.style.color='var(--text-3)';},2500);
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){fechaMo(null,'moEdit');fechaMo(null,'moCopiar');}
+  if(e.key==='Enter'&&document.getElementById('moEdit').classList.contains('open'))salvar();
+});
+['mCod','mTipo','mAlunos'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el)el.addEventListener('input',validar);
+});
+
+// ============================================================
+// MATRIZ CURRICULAR
+// ============================================================
+let E_MATRIZ = 'bach'; // 'bach' | 'bach_lic'
+
+function setMatriz(tipo) {
+  E_MATRIZ = tipo;
+  document.getElementById('btnBach').className = tipo==='bach' ? 'btn btn-p btn-sm' : 'btn btn-g btn-sm';
+  document.getElementById('btnLic').className  = tipo==='bach_lic' ? 'btn btn-p btn-sm' : 'btn btn-g btn-sm';
+  document.getElementById('matrizInfo').textContent =
+    tipo==='bach' ? 'Bacharelado — 268 créditos' : 'Bacharel + Licenciado — 322 créditos';
+  document.getElementById('btnBach').style.cssText = tipo==='bach' ? 'flex:1;font-size:11px;' : 'flex:1;font-size:11px;';
+  document.getElementById('btnLic').style.cssText  = tipo==='bach_lic' ? 'flex:1;font-size:11px;' : 'flex:1;font-size:11px;';
+  renderSugestoes();
+}
+
+function getDisciplinasPeriodo(per) {
+  const pd = MATRIZ.disciplinas[per];
+  if (!pd) return [];
+  const bach = pd.bach || [];
+  const lic  = E_MATRIZ === 'bach_lic' ? (pd.lic_extra || []) : [];
+  return [...bach, ...lic];
+}
+
+function renderSugestoes() {
+  const per = E.periodo;
+  const discs = getDisciplinasPeriodo(per);
+  const lista = document.getElementById('listaSugestoes');
+  if (!lista) return;
+  lista.innerHTML = '';
+
+  discs.forEach(d => {
+    const div = document.createElement('div');
+    const cor = (window.CORES||[]).find(c=>c.id===d.cor)||{bg:'#e8f0f9',bd:'#8ab5dc',tx:'#1a4a7a'};
+    div.style.cssText = `display:flex;align-items:center;gap:6px;padding:4px 7px;border-radius:5px;cursor:pointer;border:1px solid ${cor.bd};background:${cor.bg};font-size:11px;color:${cor.tx};`;
+    const temLab = d.temLab ? ' · LAB' : '';
+    const cr = d.cr ? ` ${d.cr}cr` : '';
+    const tag = d.exclusivo==='lic' ? ' [Lic]' : '';
+    div.innerHTML = `
+      <span style="font-family:'DM Mono',monospace;font-size:9px;flex-shrink:0;opacity:.75">${d.codigo}</span>
+      <span style="flex:1;line-height:1.3">${d.nome}${tag}</span>
+      <span style="font-size:9px;opacity:.6;white-space:nowrap">${cr}${temLab}</span>
+    `;
+    div.title = `${d.nome} — ${d.ch}h${d.prereq?' | Pré: '+d.prereq:''}`;
+    div.onclick = () => abrirModalComDisc(d);
+    lista.appendChild(div);
+  });
+
+  // Optativas
+  renderOptativas();
+}
+
+function renderOptativas() {
+  const lista = document.getElementById('listaOptativas');
+  const sb = document.getElementById('sbOptativas');
+  if (!lista || !sb) return;
+  sb.style.display = '';
+  lista.innerHTML = '';
+  MATRIZ.optativas.forEach(d => {
+    const div = document.createElement('div');
+    div.style.cssText = 'display:flex;align-items:center;gap:6px;padding:3px 7px;border-radius:4px;cursor:pointer;border:1px solid #b0b0b0;background:#ececec;font-size:10px;color:#404040;';
+    div.innerHTML = `<span style="font-family:'DM Mono',monospace;font-size:9px;flex-shrink:0;opacity:.7">${d.codigo}</span><span style="flex:1">${d.nome}</span><span style="opacity:.6">${d.cr}cr</span>`;
+    div.onclick = () => abrirModalComDisc({...d, tipo:'aula', cor:'gray', temLab:false});
+    lista.appendChild(div);
+  });
+}
+
+function abrirModalComDisc(d) {
+  // Abre o modal com os dados pré-preenchidos da disciplina
+  // Usa o último slot clicado ou pede para clicar em um slot
+  if (!E.slotAtual) {
+    setStatus('Clique em um slot (+) na grade primeiro');
+    return;
+  }
+  document.getElementById('mCod').value = d.codigo;
+  document.getElementById('mNome').value = d.nome;
+  document.getElementById('mSub').value = d.temLab ? 'Preleção' : '';
+  document.getElementById('mTipo').value = d.tipo || 'aula';
+  document.getElementById('mAlunos').value = '';
+  const cor = d.cor || 'blue';
+  E.mCorSel = cor;
+  if (typeof initCores === 'function') initCores('cg2', cor);
+  if (typeof syncCor === 'function') syncCor(d.tipo||'aula', 'cg2');
+  document.getElementById('moEdit').classList.add('open');
+  if (typeof validar === 'function') validar();
+}
+
+function autoPrealocar(per) {
+  // Pré-aloca preleções da matriz na grade (sem sobrescrever o que já existe)
+  // Apenas marca o slotAtual para permitir clique nas sugestões
+  renderSugestoes();
+}
+
+// ── LOGIN ──────────────────────────────────────────────────
+
+function showLogin(){
+  document.getElementById('moLogin').classList.add('open');
+}
+
+async function fazerLogin(){
+  const email=document.getElementById('lEmail').value.trim();
+  const senha=document.getElementById('lSenha').value;
+  const msg=document.getElementById('lMsg');
+  msg.textContent='Entrando...';msg.style.color='var(--text-3)';
+  const {data,error}=await getSB().auth.signInWithPassword({email,password:senha});
+  if(error){msg.textContent='E-mail ou senha incorretos.';msg.style.color='var(--conflict)';return;}
+  _usuario=data.user;
+  document.getElementById('moLogin').classList.remove('open');
+  document.getElementById('userLabel').textContent=_usuario.email;
+  document.getElementById('btnLogout').style.display='';
+  await load();
+  initPer();initTurmas();initCores('cg1',E.corSel);
+  carregarCaps();carregarAlunos();renderEU();renderGrade();
+}
+
+async function logout(){
+  if(!confirm('Sair do sistema?'))return;
+  await getSB().auth.signOut();
+  _usuario=null;
+  setConStatus('offline');
+  document.getElementById('userLabel').textContent='';
+  document.getElementById('btnLogout').style.display='none';
+  showLogin();
+}
+
+function setConStatus(s){
+  const el=document.getElementById('conStatus');
+  if(!el)return;
+  const map={
+    online:{text:'● online',bg:'#e8f5ee',color:'#2d7a4f'},
+    offline:{text:'○ offline',bg:'#fde8e8',color:'#8a2020'},
+    error:{text:'⚠ erro',bg:'#fdf3dc',color:'#8a5c00'},
+    conectando:{text:'conectando...',bg:'#e8f0f9',color:'#2d5a8e'},
+  };
+  const m=map[s]||map.conectando;
+  el.textContent=m.text;el.style.background=m.bg;el.style.color=m.color;
+}
+
+// ============================================================
+// BOOT
+// ============================================================
+load();
+initPer();initTurmas();
+setMatriz('bach');
+initCores('cg1',E.corSel);
+carregarCaps();carregarAlunos();
+renderEU();
+renderGrade();
+</script>
+<!-- MODAL LOGIN -->
+<div class="mo" id="moLogin" style="z-index:300;">
+<div class="md" onclick="event.stopPropagation()" style="max-width:380px;">
+  <div class="md-title" style="text-align:center;margin-bottom:4px;">Grade Horária</div>
+  <div style="text-align:center;font-size:12px;color:var(--text-3);margin-bottom:18px;">Psicologia · PUC Goiás · 2026/2</div>
+  <div class="disc-form">
+    <div class="fg"><label class="fl">E-mail</label>
+      <input type="email" class="fi" id="lEmail" placeholder="seu@email.com" onkeydown="if(event.key==='Enter')document.getElementById('lSenha').focus()">
+    </div>
+    <div class="fg"><label class="fl">Senha</label>
+      <input type="password" class="fi" id="lSenha" placeholder="••••••••" onkeydown="if(event.key==='Enter')fazerLogin()">
+    </div>
+    <div id="lMsg" style="font-size:11px;min-height:16px;"></div>
+  </div>
+  <div class="md-acts" style="justify-content:center;">
+    <button class="btn btn-p btn-full" onclick="fazerLogin()" style="width:100%;">Entrar</button>
+  </div>
+  <div style="text-align:center;font-size:10px;color:var(--text-3);margin-top:10px;">
+    Acesso restrito · Solicite convite ao administrador
+  </div>
+</div>
+</div>
+
+</body>
+</html>
